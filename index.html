@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Three.js Parallax Scroll</title>
+    <!-- Tailwind CSS for styling the foreground content -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Ensures the body can scroll, and the canvas stays fixed in the back */
+        body {
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            overflow-x: hidden;
+            background-color: #111827; /* Dark background fallback */
+        }
+
+        /* The canvas where the 3D model is rendered */
+        #bg-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1; /* Place it behind all other content */
+        }
+
+        /* Container for the scrollable content on top of the canvas */
+        .content-container {
+            position: relative;
+            z-index: 1;
+            color: white;
+        }
+
+        /* The total scrollable height is now determined by the content itself */
+
+        /* Styling for the content sections */
+        .content-section {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            padding: 2rem;
+        }
+    </style>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <!-- The canvas for our Three.js scene -->
+    <canvas id="bg-canvas"></canvas>
+
+    <!-- The scrollable content that appears over the 3D background -->
+    <main class="content-container">
+        
+        <!-- Section 1: Hero Banner -->
+        <section class="content-section">
+            <div class="text-center max-w-2xl mx-auto">
+                <div class="p-8 bg-gray-900 bg-opacity-70 rounded-2xl backdrop-blur-sm">
+                    <h1 class="text-4xl md:text-6xl font-bold mb-4">Parallax 3D Background</h1>
+                    <p class="text-lg md:text-xl text-gray-300">Scroll down to see the magic. The character model in the background will move and rotate with you.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 2: Process Example -->
+        <section class="content-section">
+            <div class="text-center max-w-3xl mx-auto">
+                 <div class="p-8 bg-gray-900 bg-opacity-70 rounded-2xl backdrop-blur-sm">
+                    <h2 class="text-3xl md:text-4xl font-bold mb-8">Our Process</h2>
+                    <div class="flex flex-col md:flex-row justify-around gap-8">
+                        <div class="flex-1">
+                            <h3 class="text-xl font-bold mb-2">1. Animate</h3>
+                            <p class="text-gray-400">We bring your ideas to life with stunning 3D animations and visual effects.</p>
+                        </div>
+                        <div class="flex-1">
+                            <h3 class="text-xl font-bold mb-2">2. Integrate</h3>
+                            <p class="text-gray-400">Seamlessly integrated into your web experience for maximum impact.</p>
+                        </div>
+                        <div class="flex-1">
+                            <h3 class="text-xl font-bold mb-2">3. Captivate</h3>
+                            <p class="text-gray-400">Create unforgettable digital journeys that captivate your audience.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 3: Contact Button -->
+        <section class="content-section">
+            <div class="text-center max-w-2xl mx-auto">
+                <div class="p-8 bg-gray-900 bg-opacity-70 rounded-2xl backdrop-blur-sm">
+                    <h2 class="text-3xl md:text-4xl font-bold mb-4">Ready to Start?</h2>
+                    <p class="text-lg text-gray-300 mb-8">Let's create something amazing together.</p>
+                    <button class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-8 rounded-lg transition-colors duration-300">
+                        Contact Us
+                    </button>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Three.js Library -->
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"
+            }
+        }
+    </script>
+
+    <script type="module">
+        import * as THREE from 'three';
+
+        // --- CORE SETUP ---
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({
+            canvas: document.querySelector('#bg-canvas'),
+            antialias: true,
+            alpha: true // Make canvas transparent to show body background
+        });
+        
+        // --- PERFORMANCE OPTIMIZATION ---
+        // Cap the pixel ratio to 2 for performance on high-density displays
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        renderer.setSize(window.innerWidth, window.innerHeight);
+
+        // --- LIGHTING ---
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
+        scene.add(ambientLight);
+        const directionalLight = new THREE.DirectionalLight(0x87ceeb, 2);
+        directionalLight.position.set(5, 5, 5);
+        scene.add(directionalLight);
+
+        // --- MODEL CREATION ---
+        const modelGroup = new THREE.Group();
+        const material = new THREE.MeshNormalMaterial();
+        // Head
+        const head = new THREE.Mesh(new THREE.SphereGeometry(0.5, 32, 32), material);
+        head.position.y = 2.5;
+        modelGroup.add(head);
+        // Torso
+        const torso = new THREE.Mesh(new THREE.BoxGeometry(1, 2, 0.5), material);
+        torso.position.y = 1;
+        modelGroup.add(torso);
+        // Arms (T-pose)
+        const armLeft = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.15, 1.5), material);
+        armLeft.position.set(-1.25, 1.8, 0);
+        armLeft.rotation.z = Math.PI / 2;
+        modelGroup.add(armLeft);
+        const armRight = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.15, 1.5), material);
+        armRight.position.set(1.25, 1.8, 0);
+        armRight.rotation.z = Math.PI / 2;
+        modelGroup.add(armRight);
+        // Legs
+        const legLeft = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.2, 2), material);
+        legLeft.position.set(-0.3, -1, 0);
+        modelGroup.add(legLeft);
+        const legRight = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.2, 2), material);
+        legRight.position.set(0.3, -1, 0);
+        modelGroup.add(legRight);
+        scene.add(modelGroup);
+
+        // Set initial camera position
+        camera.position.z = 5;
+
+        // --- SCROLL ANIMATION (OPTIMIZED) ---
+        // An object to hold the target values from the scroll event
+        const scrollTargets = {
+            rotationY: 0,
+            cameraY: 0
+        };
+
+        function updateOnScroll() {
+            const scrollY = window.scrollY;
+            const scrollHeight = document.body.scrollHeight - window.innerHeight;
+            // Handle case where scrollHeight is 0 to prevent division by zero
+            const scrollPercent = scrollHeight > 0 ? scrollY / scrollHeight : 0;
+            
+            // Set the TARGET values based on scroll
+            scrollTargets.rotationY = scrollPercent * Math.PI * 2;
+            // This value is now much smaller to keep the character in view.
+            scrollTargets.cameraY = -scrollPercent * 2.5;
+        }
+
+        // Attach event listener for scrolling
+        window.addEventListener('scroll', updateOnScroll);
+
+
+        // --- RENDER LOOP (OPTIMIZED) ---
+        // A smoothing factor for the animation (lower is smoother)
+        const lerpFactor = 0.05;
+
+        function animate() {
+            requestAnimationFrame(animate);
+            
+            // --- SMOOTHING LOGIC ---
+            // Interpolate the model's rotation towards the target
+            modelGroup.rotation.y += (scrollTargets.rotationY - modelGroup.rotation.y) * lerpFactor;
+            
+            // Interpolate the camera's position towards the target
+            camera.position.y += (scrollTargets.cameraY - camera.position.y) * lerpFactor;
+            
+            renderer.render(scene, camera);
+        }
+
+        // --- RESIZE HANDLER ---
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        window.addEventListener('resize', onWindowResize, false);
+
+        // --- INITIALIZE ---
+        updateOnScroll(); // Set initial position based on potential reload scroll position
+        animate();
+    </script>
+</body>
+</html>
+
